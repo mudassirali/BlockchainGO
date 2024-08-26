@@ -3,6 +3,7 @@ package main
 import (
 	. "BlockchainGO/src/block"
 	wallet "BlockchainGO/src/wallet"
+	"fmt"
 	"log"
 )
 
@@ -37,6 +38,8 @@ func main() {
 	bc.Mining()
 	bc.Print()
 
+	fmt.Printf("A %.1f\n", bc.CalculateTotalAmount(walletA.GetBlockchainAddress()))
+	fmt.Printf("B %.1f\n", bc.CalculateTotalAmount(walletB.GetBlockchainAddress()))
 	/*
 		// Blockchain
 		blockchain := block.NewBlockchain(walletM.BlockchainAddress())
