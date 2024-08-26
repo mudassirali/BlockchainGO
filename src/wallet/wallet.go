@@ -6,10 +6,10 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 
 	"github.com/btcsuite/btcutil/base58"
+	"github.com/parinpan/magicjson"
 )
 
 type Wallet struct {
@@ -64,7 +64,7 @@ func (w *Wallet) SendFunds(reciever string, amount float32) (*Transaction, *Sign
 }
 
 func (w *Wallet) signTransactions(t *Transaction) *Signature {
-	m, _ := json.Marshal(t)
+	m, _ := magicjson.Marshal(t)
 	h := sha256.Sum256([]byte(m))
 	r, s, _ := ecdsa.Sign(rand.Reader, w.privateKey, h[:])
 	return &Signature{r, s}

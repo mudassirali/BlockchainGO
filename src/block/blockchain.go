@@ -4,11 +4,11 @@ import (
 	. "BlockchainGO/src/utils"
 	"crypto/ecdsa"
 	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/parinpan/magicjson"
 )
 
 const (
@@ -24,6 +24,7 @@ type Blockchain struct {
 }
 
 func (bc *Blockchain) CreateBlock(nonce int, previousHash [32]byte) *Block {
+	fmt.Println("bc.Transaction Pool: ", bc.transactionPool)
 	b := NewBlock(nonce, previousHash, bc.transactionPool)
 	bc.chain = append(bc.chain, b)
 	bc.transactionPool = []*Transaction{}
@@ -63,7 +64,7 @@ func (bc *Blockchain) AddTransaction(t *Transaction, s *Signature, senderPK *ecd
 }
 
 func (bc *Blockchain) VerifyTransactionSignature(t *Transaction, s *Signature, senderPK *ecdsa.PublicKey) bool {
-	m, _ := json.Marshal(t)
+	m, _ := magicjson.Marshal(t)
 	h := sha256.Sum256([]byte(m))
 	return ecdsa.Verify(senderPK, h[:], s.R, s.S)
 }
@@ -73,7 +74,6 @@ func (bc *Blockchain) Mining() bool {
 	bc.AddTransaction(t, nil, nil)
 	previousHash := bc.LastBlock().Hash()
 	nonce := bc.ProofOfWork(previousHash)
-	fmt.Println("found nonce ", nonce)
 	bc.CreateBlock(nonce, previousHash)
 	log.Println("action=mining, status=success")
 	return true
@@ -82,7 +82,7 @@ func (bc *Blockchain) Mining() bool {
 func (bc *Blockchain) LastBlock() *Block {
 	fmt.Println(len(bc.chain))
 	if len(bc.chain)-1 <= 0 {
-		return &Block{Nonce: 0}
+		return &Block{nonce: 0}
 	} else {
 		return bc.chain[len(bc.chain)-1]
 	}
@@ -93,8 +93,6 @@ func (bc *Blockchain) ProofOfWork(previousHash [32]byte) int {
 	transactions := bc.transactionPool
 	nonce := 0
 	zeros := strings.Repeat("0", MINING_DIFFICULTY)
-
-	fmt.Println(" 1 ProofOfWork PreviousHash: ", hex.EncodeToString(previousHash[:]))
 
 	guessHash := NewBlock(nonce, previousHash, transactions).Hash()
 	guessHashStr := fmt.Sprintf("%x", guessHash)
@@ -111,7 +109,7 @@ func (bc *Blockchain) ProofOfWork(previousHash [32]byte) int {
 func (bc *Blockchain) CalculateTotalAmount(blockchainAddress string) float32 {
 	var totalAmount float32 = 0.0
 	for _, b := range bc.chain {
-		for _, t := range b.Transactions {
+		for _, t := range b.transactions {
 			value := t.GetFunds()
 			if blockchainAddress == t.GetRecipientAddress() {
 				totalAmount += value
