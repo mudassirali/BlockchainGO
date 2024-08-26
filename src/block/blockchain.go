@@ -91,19 +91,16 @@ func (bc *Blockchain) LastBlock() *Block {
 
 func (bc *Blockchain) ProofOfWork(previousHash [32]byte) int {
 	transactions := bc.transactionPool
-	nonce := 0
 	zeros := strings.Repeat("0", MINING_DIFFICULTY)
+	nonce := 0
 
-	guessHash := NewBlock(nonce, previousHash, transactions).Hash()
-	guessHashStr := fmt.Sprintf("%x", guessHash)
-
-	for guessHashStr[:MINING_DIFFICULTY] != zeros {
+	for {
+		guessHashStr := fmt.Sprintf("%x", NewBlock(nonce, previousHash, transactions).Hash())
+		if guessHashStr[:MINING_DIFFICULTY] == zeros {
+			return nonce
+		}
 		nonce += 1
-		guessHash = NewBlock(nonce, previousHash, transactions).Hash()
-		guessHashStr = fmt.Sprintf("%x", guessHash)
-
 	}
-	return nonce
 }
 
 func (bc *Blockchain) CalculateTotalAmount(blockchainAddress string) float32 {
